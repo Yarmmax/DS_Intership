@@ -1,8 +1,2 @@
-data/
-clean_data/items.csv
-clean_data/item_categories.csv
-clean_data/sales_per_months.csv
-clean_data/sales_train.csv
-clean_data/sample_submission.csv
-clean_data/shops.csv
-clean_data/test.csv
+catboost_info/
+.ipynb_checkpoints/
