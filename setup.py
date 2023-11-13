@@ -16,31 +16,24 @@ setup(
     # classifiers=[]
     python_requires='>=3.8, <4',
     install_requires=[
-        'numpy',
-        'pandas',
-        'setuptools',
-        'sys',
-        'os',
-        'pathlib',
-        'csv',
-        'io',
-        'warnings',
-        'time',
-        'permetrics',
-        'seaborn',
-        'matplotlib',
-        'scipy',
-        'scikit-learn',
-        'datetime',
-        'collections',
-        'random',
-        'lightgbm',
-        'xgboost',
-        'boruta',
-        'catboost',
-        'optuna',
-        'shap',
-        'hyperopt',
+                    'numpy'
+                    'pandas'
+                    'setuptools'
+                    'pathlib'
+                    'seaborn'
+                    'matplotlib'
+                    'scipy'
+                    'scikit-learn'
+                    'datetime'
+                    'scikit-learn'
+                    'permetrics'
+                    'lightgbm'
+                    'xgboost'
+                    'boruta'
+                    'catboost'
+                    'optuna'
+                    'shap'
+                    'hyperopt'
     ],
     # extras_require={ "excel":[openpyxl]},
     packages=find_packages(),
