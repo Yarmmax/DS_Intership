@@ -7,17 +7,17 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = '>3.8, <4'
-setuptools = "^68.2.2"
-permetrics = "^1.5.0"
-seaborn = "^0.13.0"
-scikit-learn = "^1.3.2"
-lightgbm = "^4.1.0"
-xgboost = "^2.0.1"
-boruta = "^0.3.0"
-catboost = "^1.2.2"
-optuna = "^3.4.0"
-shap = "^0.43.0"
-hyperopt = "^0.2.7"
+setuptools = "*"
+permetrics = "*"
+seaborn = "*"
+scikit-learn = "*"
+lightgbm = "*"
+xgboost = "*"
+boruta = "*"
+catboost = "*"
+optuna = "*"
+shap = "*"
+hyperopt = "*"
 
 
 [build-system]
