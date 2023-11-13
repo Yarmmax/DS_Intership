@@ -1,0 +1,7 @@
+README.md
+setup.py
+yarmmaxds.egg-info/PKG-INFO
+yarmmaxds.egg-info/SOURCES.txt
+yarmmaxds.egg-info/dependency_links.txt
+yarmmaxds.egg-info/requires.txt
+yarmmaxds.egg-info/top_level.txt
