@@ -5,6 +5,7 @@ seaborn
 matplotlib
 scipy
 scikit-learn
+scikit-learn
 permetrics
 lightgbm
 xgboost

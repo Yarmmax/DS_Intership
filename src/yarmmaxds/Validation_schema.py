@@ -1,28 +1,19 @@
 # linear algebra
 import numpy as np
+
 # working with data in table structures
 import pandas as pd
 pd.set_option('display.float_format', lambda x: '%.2f' % x)
+
 # data visualization
 import seaborn as sns
 import matplotlib.pyplot as plt
-# working with files
-import sys
-import os
-from pathlib import Path
-import csv
-import io
-# to off warnings
-import warnings
-warnings.filterwarnings('ignore')
+
 # validation schema
 import time
 import sklearn
-from sklearn.model_selection import train_test_split
-from datetime import timedelta, datetime
 from sklearn.model_selection import TimeSeriesSplit
-from sklearn.preprocessing import StandardScaler
-from sklearn.preprocessing import MinMaxScaler
+
 # metrics  calculation
 from sklearn.metrics import (
     mean_squared_error as mse_lib,
@@ -30,15 +21,10 @@ from sklearn.metrics import (
     mean_absolute_percentage_error as mape_lib,
     r2_score as r2_lib
 )
-from permetrics.regression import RegressionMetric
 
 # models
-from sklearn.linear_model import Ridge
-from sklearn.svm import SVR
-from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor
 import lightgbm as lgb
-import xgboost as xgb
 from xgboost import XGBRegressor
 import catboost as cb
 

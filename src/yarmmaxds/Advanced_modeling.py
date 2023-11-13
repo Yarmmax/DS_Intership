@@ -9,25 +9,11 @@ pd.set_option('display.float_format', lambda x: '%.2f' % x)
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-
-# working with files
-import sys
-import os
-from pathlib import Path
-import csv
-
-# to off warnings
-import warnings
-warnings.filterwarnings('ignore')
-
 # validation schema
 import time
-from datetime import timedelta, datetime
 from sklearn.model_selection import TimeSeriesSplit
-from collections import defaultdict
-from sklearn.metrics import mean_squared_error as mse
 from sklearn.model_selection import train_test_split
-from scipy.stats import randint, uniform
+
 
 # metrics  calculation
 from sklearn.metrics import (
@@ -36,7 +22,6 @@ from sklearn.metrics import (
     mean_absolute_percentage_error as mape_lib,
     r2_score as r2_lib
 )
-from permetrics.regression import RegressionMetric
 
 # advanced modeling
 from boruta import BorutaPy
@@ -48,7 +33,6 @@ from hyperopt import fmin, hp, tpe, Trials, space_eval, STATUS_OK
 # models
 import random
 import sklearn
-from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor
 import lightgbm as lgb
 from xgboost import XGBRegressor
