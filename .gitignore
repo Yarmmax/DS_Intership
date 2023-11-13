@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 catboost_info/
 .ipynb_checkpoints/
 data/
@@ -9,3 +10,9 @@ catboost_info/
 data/
 .idea/
 >>>>>>> DS-1.2
+=======
+catboost_info/
+.ipynb_checkpoints/
+data/
+.idea/
+>>>>>>> DS-2.1
