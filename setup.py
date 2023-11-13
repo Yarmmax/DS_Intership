@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='yarmmaxds',
-    version='0.2.5',
+    version='0.1.0',
     description='my test DS package',
     long_description=pathlib.Path("README.md").read_text(),
     long_description_content_type="text/markdown",
@@ -16,23 +16,23 @@ setup(
     # classifiers=[]
     python_requires='>=3.8, <4',
     install_requires=[
-                    'numpy'
-                    'pandas'
-                    'setuptools'
-                    'pathlib'
-                    'seaborn'
-                    'matplotlib'
-                    'scipy'
-                    'scikit-learn'
-                    'datetime'
-                    'scikit-learn'
-                    'permetrics'
-                    'lightgbm'
-                    'xgboost'
-                    'boruta'
-                    'catboost'
-                    'optuna'
-                    'shap'
+                    'numpy',
+                    'pandas',
+                    'setuptools',
+                    'pathlib',
+                    'seaborn',
+                    'matplotlib',
+                    'scipy',
+                    'scikit-learn',
+                    'datetime',
+                    'scikit-learn',
+                    'permetrics',
+                    'lightgbm',
+                    'xgboost',
+                    'boruta',
+                    'catboost',
+                    'optuna',
+                    'shap',
                     'hyperopt'
     ],
     # extras_require={ "excel":[openpyxl]},
