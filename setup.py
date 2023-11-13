@@ -14,7 +14,7 @@ setup(
     license="The Unlicense",
     # project_urls={},
     # classifiers=[]
-    python_requires="^3.8",
+    python_requires='>=3.8, <4',
     install_requires=[
         'numpy',
         'pandas',
