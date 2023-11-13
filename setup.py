@@ -3,7 +3,7 @@ import pathlib
 from setuptools import setup, find_packages
 
 setup(
-    name='yarmmaxdstest',
+    name='yarmmaxds',
     version='0.2.3',
     description='my test DS package',
     long_description=pathlib.Path("README.md").read_text(),
@@ -45,5 +45,5 @@ setup(
     # extras_require={ "excel":[openpyxl]},
     packages=find_packages(),
     include_package_data=True,
-    # entry_points={"console_scripts": ["yarmmax_DS_test = yarmmaxDStest.entry_point:main"]},
+    # entry_points={"console_scripts": ["yarmmax_DS = yarmmaxDS.entry_point:main"]},
 )
