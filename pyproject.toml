@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "yarmmaxdstest"
+name = "yarmmaxds"
 version = "0.2.3"
 description = ""
 authors = ["Max <maxim_yarmaluk@mail.ru>"]
