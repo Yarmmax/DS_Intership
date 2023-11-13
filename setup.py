@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='yarmmaxds',
-    version='0.1.0',
+    version='0.2.5',
     description='my test DS package',
     long_description=pathlib.Path("README.md").read_text(),
     long_description_content_type="text/markdown",
