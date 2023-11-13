@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "yarmmaxdstest"
-version = "0.2.3"
+version = "0.1.5"
 description = ""
 authors = ["Max <maxim_yarmaluk@mail.ru>"]
 readme = "README.md"
