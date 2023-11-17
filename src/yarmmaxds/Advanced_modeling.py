@@ -9,11 +9,25 @@ pd.set_option('display.float_format', lambda x: '%.2f' % x)
 import seaborn as sns
 import matplotlib.pyplot as plt
 
+
+# working with files
+import sys
+import os
+from pathlib import Path
+import csv
+
+# to off warnings
+import warnings
+warnings.filterwarnings('ignore')
+
 # validation schema
 import time
+from datetime import timedelta, datetime
 from sklearn.model_selection import TimeSeriesSplit
+from collections import defaultdict
+from sklearn.metrics import mean_squared_error as mse
 from sklearn.model_selection import train_test_split
-
+from scipy.stats import randint, uniform
 
 # metrics  calculation
 from sklearn.metrics import (
@@ -22,9 +36,9 @@ from sklearn.metrics import (
     mean_absolute_percentage_error as mape_lib,
     r2_score as r2_lib
 )
+from permetrics.regression import RegressionMetric
 
 # advanced modeling
-from boruta import BorutaPy
 import optuna
 import shap
 shap.initjs()
@@ -33,11 +47,15 @@ from hyperopt import fmin, hp, tpe, Trials, space_eval, STATUS_OK
 # models
 import random
 import sklearn
+from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor
 import lightgbm as lgb
 from xgboost import XGBRegressor
 import catboost as cb
 
+
+
+# Validation schema
 """
     The following indexes will be used:
 
@@ -210,7 +228,7 @@ class Validation:
         return pd.DataFrame.from_dict(self.calculate_metrics(y_pred=y_pred_test, y_true=y_test), orient='index',
                                       columns=['Test metrics'])
 
-    def validate(self, predictions_by_ID=True, type="score", plot=False):
+    def validate(self, predictions_by_ID=True, val_type="score", train_val_error_plot=False):
         eval_report = {}
         train_errors = []
         val_errors = []
@@ -307,7 +325,7 @@ class Validation:
                 metrics_info.loc[("step" + str(step), 'train'), :] = self.calculate_metrics(y_pred=y_pred_train,
                                                                                             y_true=y_train)
 
-            if is_boost:
+            if is_boost and train_val_error_plot:
                 # Calculate mean values and std for train and validation error
                 mean_train_errors = np.mean(train_errors, axis=0)
                 std_train_errors = np.std(train_errors, axis=0)
@@ -337,9 +355,9 @@ class Validation:
             metric = metrics_info.loc['RMSE', :]
 
         # Return result of validation
-        if type == "report":
+        if val_type == "report":
             return metrics_info
-        elif type == "score":
+        elif val_type == "score":
             return np.asarray(metric).mean()
 
 
@@ -360,6 +378,7 @@ class Pipeline:
                  selection_sample_size=None,
                  explainability_layer=False,
                  error_analysis_layer=False,
+                 train_val_error_plot=False,
                  optimizer_iterations=20
                  ):
         self.train_data = train_data
@@ -383,6 +402,7 @@ class Pipeline:
         self.selected_train_data = None
         self.selected_X = None
         self.selected_test_data = None
+        self.train_val_error_plot = train_val_error_plot
 
         # Check data for valid columns
         assert set([
@@ -487,17 +507,17 @@ class Pipeline:
 
             test_features = self.important_features.copy()
             test_features.extend(self.test_validation_features)
-            test_data = self.test_data[test_features]
+            submission_data = self.submission_data[test_features]
 
             submission_example = self.submission_example
         else:
             train_data = self.train_data
-            test_data = self.test_data
+            submission_data = self.submission_data
             submission_example = self.submission_example
 
         X_train, y_train = train_data.drop(columns=['item_cnt_month']), train_data.item_cnt_month.clip(0, 20)
-        X_test = test_data
-        X_test['date_block_num'] = 34
+        X_submission = submission_data
+        X_submission['date_block_num'] = 34
 
         if self.optimal_hyperparametres:
             model = cb.CatBoostRegressor(**self.optimal_hyperparametres, verbose=35)
@@ -520,10 +540,10 @@ class Pipeline:
 
         # Save model fitting
         self.fitted_model = model.copy()
-        self.predictions = model.predict(X_test.values)
+        self.predictions = model.predict(X_submission.values)
 
-        result = X_test.join(pd.DataFrame(index=X_test.index, data=self.predictions, \
-                                          columns=['item_cnt_month'])) \
+        result = X_submission.join(pd.DataFrame(index=X_submission.index, data=self.predictions, \
+                                                columns=['item_cnt_month'])) \
             [['item_id', 'shop_id', 'item_cnt_month']]. \
             merge(self.submission_example, on=['shop_id', 'item_id'], how='right') \
             .drop_duplicates(['item_id', 'shop_id'])[['ID', 'item_cnt_month']].sort_values(by='ID')
@@ -563,7 +583,7 @@ class Pipeline:
         feature_importance = model.get_feature_importance(prettified=True)
         feature_importance = feature_importance.sort_values(by='Importances', ascending=True)
 
-        # Visualize important features
+        # Visualize importatnt features
         plt.figure(figsize=(10, 6))
         plt.barh(feature_importance['Feature Id'], feature_importance['Importances'])
         plt.title('Feature Importances')
@@ -575,14 +595,16 @@ class Pipeline:
 
         y_pred_test = model.predict(X_test.values)
 
-        return sns.histplot(y_pred_test), pd.DataFrame.from_dict(
-            self.calculate_metrics(y_pred=y_pred_test, y_true=y_test), orient='index', columns=['Test metrics'])
+        return pd.DataFrame.from_dict(self.calculate_metrics(y_pred=y_pred_test, y_true=y_test), orient='index',
+                                      columns=['Test metrics'])
 
     def feature_importance_layer(self, selector="Boruta"):
         sample_size = self.selection_sample_size
         if sample_size is None:
             sample_size = self.train_data.shape[0]
         if selector == "Boruta":
+            from boruta import BorutaPy
+
             # Select sample of data
             X = self.train_data.dropna().drop(columns='item_cnt_month')[:sample_size]
             y = self.train_data.dropna()[:sample_size].item_cnt_month
@@ -656,7 +678,7 @@ class Pipeline:
                     check_nans=False,
                     plot=False
                 )
-                rmse = model.validate()
+                rmse = model.validate(val_type="score", train_val_error_plot=self.train_val_error_plot)
                 return rmse
 
             study = optuna.create_study(direction='minimize')
@@ -684,7 +706,8 @@ class Pipeline:
                 )
 
                 # Calculate validation error
-                return {'loss': model.validate(plot=False), 'status': STATUS_OK}
+                return {'loss': model.validate(val_type="score", train_val_error_plot=self.train_val_error_plot),
+                        'status': STATUS_OK}
 
             # Define space for hyperparameters tuning
 
@@ -710,7 +733,6 @@ class Pipeline:
 
             # Get best params
             best_params = {**space_eval(space, best)}
-
             return best_params
 
     def explainability_layer(self, ind_pred_to_expl=5, pred_with_high_sales=True):
@@ -719,7 +741,6 @@ class Pipeline:
             train_features.extend(['item_cnt_month'])
             # train_features.extend(self.train_validation_features)
             train_data = self.train_data[train_features]
-            submission_data = self.submission_data
 
             test_features = self.important_features.copy()
             test_features.extend(['shop_id', 'item_id'])
@@ -727,7 +748,6 @@ class Pipeline:
         else:
             train_data = self.train_data
             test_data = self.test_data
-            submission_data = self.submission_data
 
         if self.optimal_hyperparametres:
             model = cb.CatBoostRegressor(**self.optimal_hyperparametres, silent=True)
@@ -758,22 +778,21 @@ class Pipeline:
 
         # select shops/items combinations
         submission_examples = []
-        for i in range(submission_data.shape[0]):
-            submission_examples.append(tuple(submission_data.iloc[i][1:3]))
+        for i in range(self.submission_example.shape[0]):
+            submission_examples.append(tuple(self.submission_example.iloc[i][1:3]))
 
         # create dict with ID <-> shop_id, item_id connection
-        ID_by_shop_item = {'ID': [int(i) for i in submission_data.ID],
-                           'shop_id': [int(i) for i in submission_data.shop_id],
-                           'item_id': [int(i) for i in submission_data.item_id]}
+        ID_by_shop_item = {'ID': [int(i) for i in self.submission_example.ID],
+                           'shop_id': [int(i) for i in self.submission_example.shop_id],
+                           'item_id': [int(i) for i in self.submission_example.item_id]}
         df = pd.DataFrame(ID_by_shop_item)
         ID_to_shop_item = dict(zip(df['ID'], zip(df['shop_id'], df['item_id'])))
 
         # select predictions with high sales
-        preds = \
-        test_data.join(pd.DataFrame(index=test_data.index, data=model.predict(test_data), \
-                                            columns=['item_cnt_month'])) \
+        preds = self.test_data.join(pd.DataFrame(index=self.test_data.index, data=model.predict(self.test_data), \
+                                                 columns=['item_cnt_month'])) \
             [['item_id', 'shop_id', 'item_cnt_month']]. \
-            merge(submission_data, on=['shop_id', 'item_id'], how='right') \
+            merge(self.submission_example, on=['shop_id', 'item_id'], how='right') \
             .drop_duplicates(['item_id', 'shop_id'])[['ID', 'item_cnt_month']].sort_values(by='ID').fillna(0)
         predictions_with_high_sales = preds.sort_values(by=['item_cnt_month'], ascending=False)[:100]
 
@@ -806,11 +825,17 @@ class Pipeline:
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
 
         # learn model on train
-        model = self.model
+        if self.optimal_hyperparametres:
+            model = cb.CatBoostRegressor(**self.optimal_hyperparametres, silent=True)
+        elif self.params:
+            model = cb.CatBoostRegressor(**self.params, silent=True)
+        else:
+            model = self.model
+
         model.fit(X_train, y_train)
 
         # predict y_test
-        y_pred = self.model.predict(X_test)
+        y_pred = model.predict(X_test)
 
         # calculate error
         errors_info = pd.DataFrame({"y_pred": y_pred,
@@ -854,6 +879,11 @@ class Pipeline:
         return error_analysis_report
 
     def evaluate(self):
+        # Split data step (train/test)
+
+        self.train_data, self.test_data = self.train_test_split()
+
+        # Build pipeline
         if self.__feature_importance_layer__:
             feature_importance_report = self.feature_importance_layer()
         if self.__hyperparametr_optimization_layer__:
@@ -868,11 +898,14 @@ class Pipeline:
         if self.__error_analysis_layer__:
             error_analysis_report = self.error_analysis_layer()
 
+        test_metrics = self.predict_test()
+
+        # Retrurn results of evaluation
         if self.__feature_importance_layer__ and self.__error_analysis_layer__:
-            return feature_importance_report, error_analysis_report, predictions
+            return feature_importance_report, error_analysis_report, predictions, test_metrics
         elif self.__feature_importance_layer__:
-            return feature_importance_report, predictions
+            return feature_importance_report, predictions, test_metrics
         elif self.__error_analysis_layer__:
-            return error_analysis_report, predictions
+            return error_analysis_report, predictions, test_metrics
         else:
-            return predictions
+            return predictions, test_metrics
